@@ -1,0 +1,16 @@
+.flashes.success {
+    font-style: italic;
+    color: green;
+    font-size: 25px;
+}
+
+.flashes.error {
+    font-style: italic;
+    color: crimson;
+    font-size: 25px;
+}
+
+.flashes {
+    font-weight: 400;
+    margin: 10px;
+}
