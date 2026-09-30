@@ -1,5 +1,5 @@
 
-from flask import Flask, request, render_template, make_response, redirect, url_for, flash, get_flashed_messages, session, abort
+from flask import Flask, request, render_template, redirect, url_for, flash, get_flashed_messages, g
 import json
 import os
 from dotenv import load_dotenv
@@ -20,11 +20,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 #conn = psycopg.connect("postgresql://user:password@host:port/database_name")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-assert DATABASE_URL is not None, "DATABASE_URL is not set"
-conn = psycopg.connect(DATABASE_URL)
-
-repo = UserRepository(conn)
+DATABASE_URL = str(os.getenv("DATABASE_URL"))
 app.logger.setLevel("DEBUG")
 
 def validate_user(user):
@@ -39,10 +35,20 @@ def validate_user(user):
         errors["city"] = "Choose the city"
     return errors
 
+@app.before_request
+def open_connection():
+    g.conn = psycopg.connect(DATABASE_URL)
+    g.repo = UserRepository(g.conn)
+
+@app.teardown_request
+def clear_connection(exception=None):
+    conn: psycopg.Connection = g.pop("conn", None)
+    if conn is not None:
+        conn.close()
 
 @app.get('/')
 def users_index():
-    users = repo.list_all()
+    users = g.repo.list_all()
     messages = get_flashed_messages(with_categories=True)
     return render_template('users/index.html', users=users, messages=messages)
 
@@ -78,7 +84,7 @@ def users_post():
         ), 422
     user.pop("passwordConfirmation", None)
     app.logger.info("сохраняем нового пользователя")
-    repo.save(user)
+    g.repo.save(user)
     flash("User saved!", "success")
     app.logger.debug("делаем редирект на список пользователей")
     return redirect(url_for('users_index'), code=302)
@@ -89,7 +95,7 @@ def search_user():
     id = request.args.get('id', type=int)
     if term and not id:
         app.logger.debug("поиск по терму")
-        users = repo.find_by_term(term)
+        users = g.repo.find_by_term(term)
         if len(users) < 1:
             app.logger.debug("совпадений не найдено")
             flash("User not found!", "error")
@@ -98,7 +104,7 @@ def search_user():
         return render_template('users/index.html', users=users)
     elif id and not term:
         app.logger.debug("поиск по id")
-        user = repo.find(id)
+        user = g.repo.find(id)
         if not user:
             app.logger.debug("совпадений не найдено")
             flash("User not found!", "error")
@@ -114,7 +120,7 @@ def search_user():
 
 @app.get("/users/<int:id>")
 def show_user(id):
-    user = repo.find(id)
+    user = g.repo.find(id)
     app.logger.debug("просмотр информации о пользователе")
     if not user:
         return "User not found!", 404
@@ -123,13 +129,13 @@ def show_user(id):
 @app.route("/users/delete/<int:id>", methods=["POST"])
 def user_delete(id):
     app.logger.debug("удаление пользователя")
-    repo.delete(id)
+    g.repo.delete(id)
     flash("User has been deleted", "success")
     return redirect(url_for('users_index'))
 
 @app.get("/users/<int:id>/edit")
 def edit_form(id):
-    user = repo.find(id)
+    user = g.repo.find(id)
     errors = {}
     return render_template('users/new.html', user=user, errors=errors)
 
