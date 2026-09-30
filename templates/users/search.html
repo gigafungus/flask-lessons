@@ -1,0 +1,20 @@
+{% extends 'users/main.html' %} {% block content %}
+<div>
+  <form action="{{ url_for('search_user') }}" method="get">
+    <label
+      >Search by nickname
+      <input type="search" name="nickname" title="You may find user by some part of nickname" /></label
+    ><br />
+    <label
+      >Search by id <input type="number" name="id" title="Use if you know user ID" /><br /><input
+        type="submit"
+        value="Search"
+    /></label>
+  </form>
+</div>
+<div>
+  {% if messages %} {% for category, mess in messages %}
+  <p><span class="flashes {{ category }}">{{ mess }}</span></p>
+  {% endfor %} {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'users/main.html' %} {% block content %}
+  <form action="{{ url_for('users_post') }}" method="post">
+    {% if 'id' in user %}
+    <div>
+      <input type="hidden" name="id" value="{{ user.id }}">
+    </div>
+    {% endif %}
+    <div>
+      <label>
+        Имя
+        <input type="text" required name="name" value="{{ user.name|default('', true) }}" />
+      </label>
+      {% if errors.name %}
+          <div>{{ errors.name }}</div>
+      {% endif %}
+    </div>
+    <div>
+      <label>
+        Nickname
+        <input type="text" required name="nickname" value="{{ user.nickname|default('', true) }}"/>
+      </label>
+      {% if errors.nickname %}
+        <div>{{ errors.nickname }}</div>
+      {% endif %}
+    </div>
+    <div>
+      <label>
+        Email
+        <input type="email" required name="email" value="{{ user.email|default('', true) }}"/>
+      </label>
+      {% if errors.email %}
+          <div>{{ errors.email }}</div>
+      {% endif %}
+    </div>
+    <div>
+      <label>
+        Пароль
+        <input type="password" required name="password" value="{{ user.password|default('', true) }}"/>
+      </label>
+    </div>
+    <div>
+      <label>
+        Подтверждение пароля
+        <input type="password" required name="passwordConfirmation" />
+      </label>
+      {% if errors.passwordConfirmation %}
+          <div>{{ errors.passwordConfirmation }}</div>
+      {% endif %}
+    </div>
+    <div>
+      <label>
+        Город
+        <select name="city">
+          <option value="">Select</option>
+          <option {{ 'selected' if user.city == 'Moscow'  else '' }} value="Moscow">Москва</option>
+          <option {{ 'selected' if user.city == 'Penza'  else '' }} value="Penza">Пенза</option>
+          <option {{ 'selected' if user.city == 'Tomsk'  else '' }} value="Tomsk">Томск</option>
+        </select>
+      </label>
+      {% if errors.city %}
+          <div>{{ errors.city }}</div>
+      {% endif %}
+    </div>
+    {% if messages %}
+    {% for category, message in messages %}
+    <p class="flashes {{ category }}">{{ message }}</p>
+    {% endfor %}
+    {% endif %}
+    <input type="submit" value="Sign Up" />
+  </form>
+{% endblock %}

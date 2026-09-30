@@ -1,0 +1,20 @@
+{% extends 'users/main.html' %} {% block content %}
+<table>
+  <thead>
+    <th>ID</th>
+    <th>Nickname</th>
+    <th>Name</th>
+    <th>Info</th>
+  </thead>
+  {% for user in users %}
+  <tbody>
+    <td>{{ user.id }}</td>
+    <td>{{ user.nickname }}</td>
+    <td>{{ user.name }}</td>
+    <td><a href="{{ url_for('show_user', id=user.id) }}">Details</a></td>
+  </tbody>
+  {% endfor %}
+</table>
+{% if messages %} {% for category, message in messages %}
+<p class="flashes {{ category }}">{{ message }}</p>
+{% endfor %} {% endif %} {% endblock %}
